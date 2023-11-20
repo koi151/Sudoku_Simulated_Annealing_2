@@ -1,20 +1,6 @@
-const Ranking = require('../../models/ranking.model');
+const Leaderboard = require('../../models/leaderboard.model');
 
 const SudokuSolver = require('../../helpers/sudokuSolver')
-
-// [GET] /api
-module.exports.index = async (req, res) => {
-  try {
-    const sudoku = await Ranking.findAll({
-      
-    })
-    
-    res.send(sudoku);
-  } catch (error) {
-    console.log('ERROR OCCURRED:', error);
-  }
-} 
-
 
 // [POST] /api/sudoku/
 module.exports.sudokuPost = async (req, res) => {
@@ -22,13 +8,16 @@ module.exports.sudokuPost = async (req, res) => {
     const solvedBoard = JSON.parse(JSON.stringify(req.body.board));
     const timeSolved = JSON.parse(JSON.stringify(req.body.timeSolved));
 
-    const userExisted = Ranking.findOne({ userName: req.body.userName })
+    const userExisted = await Leaderboard.findOne({ userName: req.body.userName })
     if (userExisted) {
       const update = {
         userName: req.body.userName,
-        timeSolved: timeSolved
+        timeSolved: timeSolved,
+        solvedBoard: solvedBoard,
+        gameMode: req.body.gameMode
       };
-      userExisted.updateOne(update);
+
+      await userExisted.updateOne(update);
 
     } else {
       const sudokuObject = {
@@ -41,41 +30,18 @@ module.exports.sudokuPost = async (req, res) => {
 
       const newSudoku = new Ranking(sudokuObject);
       await newSudoku.save();
-      
     }
-    
-    
 
+    res.send(true)
   } catch (error) {
     console.log('ERROR OCCURRED:', error);
   }
 }
 
-// [POST] /api//sudoku/create
+// [POST] /api/sudoku/create
 module.exports.sudokuSolve = async (req, res) => {
   try {
     console.log('solve');
-
-    const solvedBoard = await SudokuSolver(req.body.board);
-
-    // await Sudoku.updateOne(
-    //   {_id: req.body.id },
-    //   { solvedBoard: solvedBoard }
-    // )
-
-    console.log('solved');
-    res.send(solvedBoard);
-
-  } catch (error) {
-    console.log('ERROR OCCURRED:', error);
-  }
-}
-
-// [PATCH] /api//sudoku/create
-module.exports.sudokuPatch = async (req, res) => {
-  try {
-    console.log('solve');
-    // console.log('id:', req.body.id);
 
     const solvedBoard = await SudokuSolver(req.body.board);
 
